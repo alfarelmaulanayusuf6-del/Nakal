@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParellFlix - Nonton Film Streaming Online</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#e50914',
+                        darkBg: '#141414',
+                        cardBg: '#181818',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for row slider */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Movie Poster hover animation */
+        .poster-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .poster-card:hover {
+            transform: scale(1.06);
+            z-index: 20;
+        }
+
+        /* Gradient mask for Hero Section */
+        .hero-gradient {
+            background: linear-gradient(0deg, #141414 0%, rgba(20,20,20,0.6) 50%, rgba(20,20,20,0.2) 100%);
+        }
+        .hero-side-gradient {
+            background: linear-gradient(90deg, #141414 0%, rgba(20,20,20,0.8) 35%, rgba(20,20,20,0) 100%);
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-white font-sans antialiased min-h-screen flex flex-col selection:bg-brand selection:text-white">
+
+    <!-- Sticky Navbar -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-gradient-to-b from-black/90 via-black/50 to-transparent px-4 md:px-12 py-3 flex items-center justify-between">
+        <!-- Left Nav: Logo & Links -->
+        <div class="flex items-center space-x-6 md:space-x-8">
+            <a href="#" class="text-brand font-black text-2xl md:text-3xl tracking-wider hover:opacity-90 transition">
+                PARELLFLIX
+            </a>
+            <div class="hidden md:flex space-x-5 text-sm font-medium text-gray-300">
+                <a href="#" class="text-white hover:text-gray-300 transition">Beranda</a>
+                <a href="#" class="hover:text-gray-400 transition">Acara TV</a>
+                <a href="#" class="hover:text-gray-400 transition">Film</a>
+                <a href="#" class="hover:text-gray-400 transition">Terbaru</a>
+                <a href="#" class="hover:text-gray-400 transition">Daftar Saya</a>
+            </div>
+        </div>
+
+        <!-- Right Nav: Search & Profile -->
+        <div class="flex items-center space-x-4">
+            <!-- Search Container -->
+            <div class="relative flex items-center">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Judul film, genre..." 
+                    class="bg-black/70 border border-gray-600 focus:border-white text-sm text-white px-3 py-1.5 pl-9 rounded-md outline-none w-36 sm:w-56 focus:w-64 md:focus:w-72 transition-all duration-300"
+                />
+                <i class="fa-solid fa-magnifying-glass absolute left-3 text-gray-400 text-sm"></i>
+                <button id="clearSearchBtn" class="hidden absolute right-3 text-gray-400 hover:text-white text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Profile Dropdown -->
+            <div class="relative group">
+                <button class="flex items-center space-x-1 focus:outline-none">
+                    <div class="w-8 h-8 rounded bg-brand text-white font-bold flex items-center justify-center shadow-md">
+                        P
+                    </div>
+                    <i class="fa-solid fa-caret-down text-xs text-gray-300 group-hover:rotate-180 transition-transform duration-200"></i>
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div class="absolute right-0 mt-2 w-48 bg-cardBg border border-gray-800 rounded shadow-2xl py-2 hidden group-hover:block transition-all duration-200 z-50">
+                    <div class="px-4 py-2 border-b border-gray-800">
+                        <p class="text-xs text-gray-400">Login sebagai</p>
+                        <p class="text-sm font-semibold text-white truncate">Parell User</p>
+                    </div>
+                    <a href="#" class="block px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 hover:text-white">Kelola Profil</a>
+                    <a href="#" class="block px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 hover:text-white">Pengaturan Akun</a>
+                    <a href="#" class="block px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 hover:text-white">Pusat Bantuan</a>
+                    <div class="border-t border-gray-800 mt-1"></div>
+                    <button onclick="alert('Keluar dari ParellFlix')" class="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-gray-800">Keluar dari ParellFlix</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Overlay Results Container -->
+    <div id="searchResultSection" class="hidden pt-24 px-4 md:px-12 pb-12 min-h-screen">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl md:text-2xl font-bold">Hasil Pencarian: <span id="searchQueryText" class="text-brand"></span></h2>
+            <span id="searchResultCount" class="text-sm text-gray-400"></span>
+        </div>
+        <div id="searchGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- Dynamic search items -->
+        </div>
+    </div>
+
+    <!-- Main Content Body -->
+    <main id="mainContent" class="flex-grow">
+        <!-- Hero Banner -->
+        <section id="heroBanner" class="relative w-full h-[70vh] md:h-[82vh] bg-neutral-900 overflow-hidden flex items-end">
+            <!-- Background Backdrop Image -->
+            <div id="heroBackdrop" class="absolute inset-0 bg-cover bg-center transition-all duration-700 scale-105"></div>
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 hero-gradient"></div>
+            <div class="absolute inset-0 hero-side-gradient hidden md:block"></div>
+
+            <!-- Banner Content -->
+            <div class="relative z-10 px-4 md:px-12 pb-12 max-w-2xl space-y-3 md:space-y-4">
+                <span class="inline-flex items-center text-xs font-semibold uppercase tracking-widest text-red-500 bg-black/40 px-2 py-0.5 rounded">
+                    <i class="fa-solid fa-fire mr-1 text-xs"></i> Sedang Trending
+                </span>
+                <h1 id="heroTitle" class="text-3xl md:text-6xl font-black drop-shadow-lg leading-tight">
+                    Loading Movie...
+                </h1>
+                <p id="heroOverview" class="text-xs md:text-sm text-gray-300 line-clamp-3 md:line-clamp-4 leading-relaxed max-w-xl">
+                    ...
+                </p>
+
+                <!-- Hero Buttons -->
+                <div class="flex items-center space-x-3 pt-2">
+                    <button id="heroPlayBtn" class="flex items-center space-x-2 bg-white text-black px-5 md:px-7 py-2 md:py-2.5 rounded-md font-bold text-sm hover:bg-opacity-80 transition shadow-lg">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Putar</span>
+                    </button>
+                    <button id="heroInfoBtn" class="flex items-center space-x-2 bg-gray-600/70 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-md font-semibold text-sm hover:bg-gray-600 transition shadow-lg">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Informasi Lanjut</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Rows Section -->
+        <div class="relative z-20 space-y-8 md:space-y-12 pb-16 -mt-8 md:-mt-16">
+            
+            <!-- Row: Trending Hari Ini -->
+            <section class="px-4 md:px-12">
+                <h2 class="text-lg md:text-xl font-bold mb-3 flex items-center space-x-2">
+                    <span>🔥 Trending Hari Ini</span>
+                </h2>
+                <div class="relative group">
+                    <div id="rowTrending" class="flex space-x-3 md:space-x-4 overflow-x-auto no-scrollbar scroll-smooth py-2">
+                        <!-- Card skeletons loaded via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Row: Top Rated -->
+            <section class="px-4 md:px-12">
+                <h2 class="text-lg md:text-xl font-bold mb-3 flex items-center space-x-2">
+                    <span>⭐ Nilai Tertinggi</span>
+                </h2>
+                <div class="relative group">
+                    <div id="rowTopRated" class="flex space-x-3 md:space-x-4 overflow-x-auto no-scrollbar scroll-smooth py-2">
+                        <!-- Cards loaded via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Row: Action Movies -->
+            <section class="px-4 md:px-12">
+                <h2 class="text-lg md:text-xl font-bold mb-3 flex items-center space-x-2">
+                    <span>💥 Film Aksi</span>
+                </h2>
+                <div class="relative group">
+                    <div id="rowAction" class="flex space-x-3 md:space-x-4 overflow-x-auto no-scrollbar scroll-smooth py-2">
+                        <!-- Cards loaded via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Row: Horror Movies -->
+            <section class="px-4 md:px-12">
+                <h2 class="text-lg md:text-xl font-bold mb-3 flex items-center space-x-2">
+                    <span>👻 Film Horor</span>
+                </h2>
+                <div class="relative group">
+                    <div id="rowHorror" class="flex space-x-3 md:space-x-4 overflow-x-auto no-scrollbar scroll-smooth py-2">
+                        <!-- Cards loaded via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Row: Anime / Animation -->
+            <section class="px-4 md:px-12">
+                <h2 class="text-lg md:text-xl font-bold mb-3 flex items-center space-x-2">
+                    <span>🎌 Anime / Animasi</span>
+                </h2>
+                <div class="relative group">
+                    <div id="rowAnimation" class="flex space-x-3 md:space-x-4 overflow-x-auto no-scrollbar scroll-smooth py-2">
+                        <!-- Cards loaded via JS -->
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black/60 text-gray-500 text-xs py-8 px-4 md:px-12 border-t border-gray-900 mt-auto">
+        <div class="max-w-6xl mx-auto space-y-4">
+            <div class="flex space-x-4 text-base text-gray-400">
+                <a href="#" class="hover:text-white"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#" class="hover:text-white"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="hover:text-white"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#" class="hover:text-white"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                <a href="#" class="hover:underline">Audio dan Subtitle</a>
+                <a href="#" class="hover:underline">Pusat Bantuan</a>
+                <a href="#" class="hover:underline">Kartu Hadiah</a>
+                <a href="#" class="hover:underline">Pusat Media</a>
+                <a href="#" class="hover:underline">Hubungan Investor</a>
+                <a href="#" class="hover:underline">Lowongan Kerja</a>
+                <a href="#" class="hover:underline">Ketentuan Penggunaan</a>
+                <a href="#" class="hover:underline">Kerahasiaan</a>
+            </div>
+            <p class="pt-4 text-gray-600">© 2026 PARELLFLIX, Inc. Diberdayakan oleh TMDB API.</p>
+        </div>
+    </footer>
+
+    <!-- Movie Detail Modal -->
+    <div id="movieModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden transition-all duration-300">
+        <div class="bg-cardBg rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl border border-gray-800">
+            <!-- Close Modal Button -->
+            <button id="closeModalBtn" class="absolute top-3 right-3 z-30 bg-black/70 hover:bg-black text-white w-9 h-9 rounded-full flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Video / Banner Section -->
+            <div id="modalMediaContainer" class="relative w-full aspect-video bg-neutral-900">
+                <!-- Trailer iframe or backdrop placeholder inserted via JS -->
+            </div>
+
+            <!-- Detail Information -->
+            <div class="p-5 md:p-8 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 id="modalTitle" class="text-2xl md:text-3xl font-extrabold text-white">Title Placeholder</h2>
+                    <div class="flex items-center space-x-3 text-sm">
+                        <span id="modalRating" class="text-green-400 font-bold flex items-center">
+                            <i class="fa-solid fa-star text-yellow-400 mr-1"></i> 0.0
+                        </span>
+                        <span id="modalDate" class="text-gray-400 border border-gray-700 px-2 py-0.5 rounded text-xs">2026</span>
+                    </div>
+                </div>
+
+                <!-- Genres -->
+                <div id="modalGenres" class="flex flex-wrap gap-2 text-xs">
+                    <!-- Genre badges -->
+                </div>
+
+                <!-- Overview -->
+                <p id="modalOverview" class="text-gray-300 text-sm md:text-base leading-relaxed">
+                    Overview placeholder...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JS Logic -->
+    <script>
+        // TMDB API Configuration
+        const API_KEY = 'cb206b8acd1f0986b52ce0628c0b649e';
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_BASE_URL = 'https://image.tmdb.org/t Describes/w500';
+        const BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original';
+
+        // Placeholder Image SVG Data URL (Fallback)
+        const POSTER_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'><rect width='100%' height='100%' fill='%23262626'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23737373' font-family='sans-serif' font-size='18'>Tidak Ada Gambar</text></svg>";
+        const BACKDROP_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1280' height='720' viewBox='0 0 1280 720'><rect width='100%' height='100%' fill='%23171717'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23525252' font-family='sans-serif' font-size='28'>PARELLFLIX</text></svg>";
+
+        // Global State
+        let trendingMovies = [];
+        let heroSlideIndex = 0;
+        let heroTimer = null;
+        let searchDebounceTimer = null;
+
+        // Navbar Scroll Styling Effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-black', 'shadow-lg');
+                navbar.classList.remove('bg-gradient-to-b');
+            } else {
+                navbar.classList.remove('bg-black', 'shadow-lg');
+                navbar.classList.add('bg-gradient-to-b');
+            }
+        });
+
+        /**
+         * Fetch API helper with double fallback mechanism (id-ID -> en-US)
+         */
+        async function fetchTMDB(endpoint, queryParams = '') {
+            const separator = endpoint.includes('?') ? '&' : '?';
+            const primaryUrl = `${BASE_URL}${endpoint}${separator}api_key=${API_KEY}&language=id-ID${queryParams}`;
+            
+            try {
+                const res = await fetch(primaryUrl);
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+
+                // Validation check for ID language content
+                if (data.results && data.results.length > 0) {
+                    return data;
+                }
+                
+                // Fallback to English if no results or specific overview missing
+                const fallbackUrl = `${BASE_URL}${endpoint}${separator}api_key=${API_KEY}&language=en-US${queryParams}`;
+                const fallbackRes = await fetch(fallbackUrl);
+                if (fallbackRes.ok) {
+                    return await fallbackRes.json();
+                }
+                return data;
+            } catch (err) {
+                console.warn(`Primary fetch failed for ${endpoint}, attempting fallback en-US.`, err);
+                try {
+                    const fallbackUrl = `${BASE_URL}${endpoint}${separator}api_key=${API_KEY}&language=en-US${queryParams}`;
+                    const fallbackRes = await fetch(fallbackUrl);
+                    return await fallbackRes.json();
+                } catch (fallbackErr) {
+                    console.error(`TMDB Fetch Error for ${endpoint}:`, fallbackErr);
+                    return null;
+                }
+            }
+        }
+
+        /**
+         * Fetch additional details if overview in ID is blank
+         */
+        async function getMovieOverviewFallback(movieId, defaultOverview) {
+            if (defaultOverview && defaultOverview.trim() !== '') {
+                return defaultOverview;
+            }
+            try {
+                const detailEn = await fetchTMDB(`/movie/${movieId}`, '&language=en-US');
+                if (detailEn && detailEn.overview) {
+                    return detailEn.overview;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            return "Deskripsi tidak tersedia untuk film ini.";
+        }
+
+        /**
+         * Setup dynamic Hero Slider
+         */
+        function setupHeroSlider(movies) {
+            if (!movies || movies.length === 0) return;
+            trendingMovies = movies.slice(0, 5); // Take top 5
+            
+            updateHeroContent(trendingMovies[0]);
+
+            // Auto slider every 5 seconds
+            if (heroTimer) clearInterval(heroTimer);
+            heroTimer = setInterval(() => {
+                heroSlideIndex = (heroSlideIndex + 1) % trendingMovies.length;
+                updateHeroContent(trendingMovies[heroSlideIndex]);
+            }, 5000);
+        }
+
+        async function updateHeroContent(movie) {
+            if (!movie) return;
+
+            const backdropEl = document.getElementById('heroBackdrop');
+            const titleEl = document.getElementById('heroTitle');
+            const overviewEl = document.getElementById('heroOverview');
+            const playBtn = document.getElementById('heroPlayBtn');
+            const infoBtn = document.getElementById('heroInfoBtn');
+
+            // Backdrop image handling
+            const backdropUrl = movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : BACKDROP_PLACEHOLDER;
+            backdropEl.style.backgroundImage = `url('${backdropUrl}')`;
+
+            titleEl.textContent = movie.title || movie.name || 'Film Populer';
+
+            // Resolve Overview fallback if empty
+            const overviewText = await getMovieOverviewFallback(movie.id, movie.overview);
+            overviewEl.textContent = overviewText;
+
+            // Button actions
+            playBtn.onclick = () => openMovieModal(movie.id, true);
+            infoBtn.onclick = () => openMovieModal(movie.id, false);
+        }
+
+        /**
+         * Render Movie Cards in horizontal container rows
+         */
+        function renderMovieRow(containerId, movies) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            if (!movies || movies.length === 0) {
+                container.innerHTML = `<p class="text-sm text-gray-500 py-4">Tidak dapat memuat konten saat ini.</p>`;
+                return;
+            }
+
+            container.innerHTML = movies.map(movie => {
+                const posterUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : POSTER_PLACEHOLDER;
+                const title = movie.title || movie.name || 'Judul Tidak Diketahui';
+                const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+
+                return `
+                    <div onclick="openMovieModal(${movie.id})" class="poster-card flex-none w-32 sm:w-40 md:w-48 cursor-pointer rounded-lg overflow-hidden bg-cardBg shadow-lg relative group border border-gray-800">
+                        <div class="aspect-[2/3] w-full relative bg-neutral-800">
+                            <img 
+                                src="${posterUrl}" 
+                                alt="${title}" 
+                                loading="lazy"
+                                onerror="this.src='${POSTER_PLACEHOLDER}'"
+                                class="w-full h-full object-cover"
+                            />
+                            <div class="absolute top-2 right-2 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold text-yellow-400 flex items-center">
+                                <i class="fa-solid fa-star mr-1"></i>${rating}
+                            </div>
+                        </div>
+                        <div class="p-2.5">
+                            <h3 class="text-xs md:text-sm font-semibold truncate text-gray-100 group-hover:text-brand transition">${title}</h3>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Fetch Movie Trailer Video Key
+         */
+        async function fetchMovieTrailerKey(movieId) {
+            try {
+                // Try id-ID first
+                let data = await fetchTMDB(`/movie/${movieId}/videos`, '&language=id-ID');
+                let video = data?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+                
+                // Fallback to en-US for trailer
+                if (!video) {
+                    data = await fetchTMDB(`/movie/${movieId}/videos`, '&language=en-US');
+                    video = data?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube') || data?.results?.[0];
+                }
+
+                return video ? video.key : null;
+            } catch (e) {
+                console.error("Error fetching video trailer:", e);
+                return null;
+            }
+        }
+
+        /**
+         * Open Detailed Movie Modal
+         */
+        async function openMovieModal(movieId, autoPlayTrailer = false) {
+            const modal = document.getElementById('movieModal');
+            const mediaContainer = document.getElementById('modalMediaContainer');
+            const titleEl = document.getElementById('modalTitle');
+            const ratingEl = document.getElementById('modalRating');
+            const dateEl = document.getElementById('modalDate');
+            const overviewEl = document.getElementById('modalOverview');
+            const genresEl = document.getElementById('modalGenres');
+
+            // Reset modal state
+            mediaContainer.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-500"><i class="fa-solid fa-circle-notch fa-spin text-3xl text-brand"></i></div>`;
+            titleEl.textContent = "Memuat...";
+            overviewEl.textContent = "...";
+            genresEl.innerHTML = "";
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent main scroll
+
+            // Fetch Movie Full Details
+            let detail = await fetchTMDB(`/movie/${movieId}`, '&language=id-ID');
+            if (!detail || !detail.title) {
+                detail = await fetchTMDB(`/movie/${movieId}`, '&language=en-US');
+            }
+
+            if (!detail) {
+                titleEl.textContent = "Gagal memuat detail film.";
+                return;
+            }
+
+            // Overview Fallback
+            const overview = await getMovieOverviewFallback(movieId, detail.overview);
+
+            // Fetch Trailer
+            const trailerKey = await fetchMovieTrailerKey(movieId);
+
+            // Render Media (Video Iframe vs Image Backdrop)
+            if (trailerKey) {
+                const autoplayParam = autoPlayTrailer ? '?autoplay=1' : '';
+                mediaContainer.innerHTML = `
+                    <iframe 
+                        src="https://www.youtube.com/embed/${trailerKey}${autoplayParam}" 
+                        title="Trailer"
+                        class="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen
+                    ></iframe>
+                `;
+            } else {
+                const backdropUrl = detail.backdrop_path ? `${BACKDROP_BASE_URL}${detail.backdrop_path}` : BACKDROP_PLACEHOLDER;
+                mediaContainer.innerHTML = `
+                    <img src="${backdropUrl}" class="w-full h-full object-cover" alt="${detail.title}">
+                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span class="bg-black/70 px-4 py-2 rounded text-xs text-gray-300">Trailer Tidak Tersedia</span>
+                    </div>
+                `;
+            }
+
+            // Populate Modal Fields
+            titleEl.textContent = detail.title || detail.original_title;
+            ratingEl.innerHTML = `<i class="fa-solid fa-star text-yellow-400 mr-1"></i> ${detail.vote_average ? detail.vote_average.toFixed(1) : 'N/A'}`;
+            dateEl.textContent = detail.release_date ? detail.release_date.split('-')[0] : 'TBA';
+            overviewEl.textContent = overview;
+
+            // Genres
+            if (detail.genres && detail.genres.length > 0) {
+                genresEl.innerHTML = detail.genres.map(g => `
+                    <span class="bg-gray-800 text-gray-300 px-2.5 py-1 rounded-full border border-gray-700">${g.name}</span>
+                `).join('');
+            }
+        }
+
+        /**
+         * Close Modal
+         */
+        function closeModal() {
+            const modal = document.getElementById('movieModal');
+            const mediaContainer = document.getElementById('modalMediaContainer');
+            modal.classList.add('hidden');
+            mediaContainer.innerHTML = ""; // Stop video playback
+            document.body.style.overflow = 'auto';
+        }
+
+        /**
+         * Live Search Handler
+         */
+        function setupLiveSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const mainContent = document.getElementById('mainContent');
+            const searchSection = document.getElementById('searchResultSection');
+            const searchGrid = document.getElementById('searchGrid');
+            const searchQueryText = document.getElementById('searchQueryText');
+            const searchResultCount = document.getElementById('searchResultCount');
+
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+
+                if (query.length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                    searchSection.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                    return;
+                }
+
+                // Debounce search
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(async () => {
+                    searchQueryText.textContent = `"${query}"`;
+                    mainContent.classList.add('hidden');
+                    searchSection.classList.remove('hidden');
+
+                    searchGrid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin text-2xl text-brand mb-2"></i><p>Mencari film...</p></div>`;
+
+                    const data = await fetchTMDB('/search/movie', `&query=${encodeURIComponent(query)}`);
+                    
+                    if (!data || !data.results || data.results.length === 0) {
+                        searchResultCount.textContent = '0 hasil ditemukan';
+                        searchGrid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500">Tidak ada film yang cocok dengan pencarian Anda.</div>`;
+                        return;
+                    }
+
+                    searchResultCount.textContent = `${data.results.length} hasil ditemukan`;
+                    searchGrid.innerHTML = data.results.map(movie => {
+                        const posterUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : POSTER_PLACEHOLDER;
+                        const title = movie.title || 'Judul Tidak Diketahui';
+                        const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+
+                        return `
+                            <div onclick="openMovieModal(${movie.id})" class="poster-card cursor-pointer rounded-lg overflow-hidden bg-cardBg border border-gray-800 flex flex-col justify-between">
+                                <div class="aspect-[2/3] w-full bg-neutral-800 relative">
+                                    <img src="${posterUrl}" alt="${title}" class="w-full h-full object-cover" onerror="this.src='${POSTER_PLACEHOLDER}'"/>
+                                    <div class="absolute top-2 right-2 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold text-yellow-400">
+                                        <i class="fa-solid fa-star mr-1"></i>${rating}
+                                    </div>
+                                </div>
+                                <div class="p-3">
+                                    <h3 class="text-xs font-semibold truncate text-white">${title}</h3>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                }, 400);
+            });
+
+            clearBtn.onclick = () => {
+                searchInput.value = '';
+                clearBtn.classList.add('hidden');
+                searchSection.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+            };
+        }
+
+        /**
+         * App Initialization
+         */
+        async function initApp() {
+            // Setup Modal Listeners
+            document.getElementById('closeModalBtn').onclick = closeModal;
+            document.getElementById('movieModal').onclick = (e) => {
+                if (e.target.id === 'movieModal') closeModal();
+            };
+
+            // Setup Live Search
+            setupLiveSearch();
+
+            // Fetch and render content rows concurrently
+            try {
+                const [trendingData, topRatedData, actionData, horrorData, animData] = await Promise.all([
+                    fetchTMDB('/trending/movie/day'),
+                    fetchTMDB('/movie/top_rated'),
+                    fetchTMDB('/discover/movie', '&with_genres=28'),
+                    fetchTMDB('/discover/movie', '&with_genres=27'),
+                    fetchTMDB('/discover/movie', '&with_genres=16')
+                ]);
+
+                // Hero & Trending
+                if (trendingData?.results) {
+                    setupHeroSlider(trendingData.results);
+                    renderMovieRow('rowTrending', trendingData.results);
+                }
+
+                // Top Rated
+                if (topRatedData?.results) {
+                    renderMovieRow('rowTopRated', topRatedData.results);
+                }
+
+                // Action
+                if (actionData?.results) {
+                    renderMovieRow('rowAction', actionData.results);
+                }
+
+                // Horror
+                if (horrorData?.results) {
+                    renderMovieRow('rowHorror', horrorData.results);
+                }
+
+                // Animation
+                if (animData?.results) {
+                    renderMovieRow('rowAnimation', animData.results);
+                }
+
+            } catch (error) {
+                console.error("Initialization Error:", error);
+            }
+        }
+
+        // Run application on window load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
